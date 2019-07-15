@@ -11,7 +11,7 @@ a great number of different environments where it can be executed - each with it
 peculiarities.
 
 This chapter intends to explain how to use _ClojureScript_ without any additional
-tooling.  This will help you understand how the compiler works and how you can use it
+tooling. This will help you understand how the compiler works and how you can use it
 when other tooling is not available (such as link:http://leiningen.org/[leiningen] +
 link:https://github.com/emezeske/lein-cljsbuild[cljsbuild] or
 link:http://boot-clj.com/[boot]).
@@ -32,23 +32,31 @@ the box.
 
 ==== Download the compiler
 
-Although the _ClojureScript_ is self hosted, the best way to use it is just using the
-JVM implementation. To use it, you should have jdk8 installed. _ClojureScript_ itself
-only requires JDK 7, but the standalone compiler that we are going to use in this
-chapter requires JDK 8, which can be found at
-http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-
-You can download the latest _ClojureScript_ compiler using `wget`:
+The fastest way to obtain all the tooling needed for ClojureScript compilaition is
+installing the Clojure CLI Tools:
 
 [source, bash]
 ----
-wget https://github.com/clojure/clojurescript/releases/download/r1.9.36/cljs.jar
+curl -O https://download.clojure.org/install/linux-install-1.10.1.462.sh
+chmod +x linux-install-1.10.1.462.sh
+sudo ./linux-install-1.10.1.462.sh
 ----
 
-The _ClojureScript_ compiler is packaged in a standalone executable jar file, so this
-is the only file (along with JDK 8) that you need to compile your _ClojureScript_
-source code to JavaScript.
+If you are using other operating system other than linux, refer to
+https://clojure.org/guides/getting_started page.
 
+Although the _ClojureScript_ is self hosted, in this book we will use
+the JVM implementation, with in turn requires JDK8 or JDK11
+installed. You can obtain it using your distribution default package
+manager or download it from
+link:https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html[Oracle]
+or link:https://www.azul.com/downloads/zulu-community/[Azul]
+
+.Example installing it using a apt in a debian-like distribution
+[source, bash]
+----
+sudo apt-get install openjdk-8-jdk rlwrap
+----
 
 ==== Compile for Node.js
 
@@ -63,8 +71,8 @@ When you have installed nvm, follow installing the latest version of nodejs:
 
 [source, shell]
 ----
-nvm install v6.2.0
-nvm alias default v6.2.0
+nvm install v10.16.0
+nvm alias default v10.16.0
 ----
 
 You can test if *nodejs* is installed in your system with this command:
@@ -72,7 +80,7 @@ You can test if *nodejs* is installed in your system with this command:
 [source, shell]
 ----
 $ node --version
-v6.2.0
+v10.16.0
 ----
 
 
@@ -120,6 +128,16 @@ Second, write the example code into the previously created
 NOTE: It is very important that the declared namespace in the file exactly matches
 the directory structure. This is the way _ClojureScript_ structures its source code.
 
+And finally, lets create the `myapp/deps.edn` declaring the clojure
+and clojurescript versions:
+
+[source, clojure]
+----
+{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}
+        org.clojure/clojure {:mvn/version "1.10.1"}}
+ :paths ["src"]}
+----
+
 
 ===== Compile the example application
 
@@ -127,18 +145,17 @@ In order to compile that source code, we need a simple build script that tells t
 _ClojureScript_ compiler the source directory and the output file. _ClojureScript_
 has a lot of other options, but at this moment we can ignore that.
 
-Let’s create the _myapp/build.clj_ file with the following content:
+Let’s create the `myapp/build.clj` file with the following content:
 
 [source, clojure]
 ----
 (require '[cljs.build.api :as b])
 
-(b/build "src"
- {:main 'myapp.core
-  :output-to "main.js"
-  :output-dir "out"
-  :target :nodejs
-  :verbose true})
+(b/build "src" {:main 'myapp.core
+                :output-to "main.js"
+                :output-dir "out"
+                :target :nodejs
+                :verbose true})
 ----
 
 This is a brief explanation of the compiler options used in this example:
@@ -156,7 +173,7 @@ To run the compilation, just execute the following command:
 [source, bash]
 ----
 cd myapp
-java -cp ../cljs.jar:src clojure.main build.clj
+clojure build.clj
 ----
 
 And when it finishes, execute the compiled file using *node*:
@@ -212,19 +229,18 @@ so the entry point is the entire namespace.
 ===== Compile the example application
 
 In order to compile the source code to run properly in a browser, overwrite the
-_mywebapp/build.clj_ file with the following content:
+`mywebapp/build.clj` file with the following content:
 
 [source, clojure]
 ----
 (require '[cljs.build.api :as b])
 
-(b/build "src"
- {:output-to "main.js"
-  :output-dir "out/"
-  :source-map true
-  :main 'mywebapp.core
-  :verbose true
-  :optimizations :none})
+(b/build "src" {:output-to "main.js"
+                :source-map true
+                :output-dir "out/"
+                :main 'mywebapp.core
+                :verbose true
+                :optimizations :none})
 ----
 
 This is a brief explanation of the compiler options we're using:
@@ -248,7 +264,7 @@ To run the compilation, just execute the following command:
 [source, bash]
 ----
 cd mywebapp;
-java -cp ../cljs.jar:src clojure.main build.clj
+clojure build.clj
 ----
 
 This process can take some time, so do not worry; wait a little bit. The JVM
@@ -282,43 +298,73 @@ it with your favorite browser and take a look in the development tools console. 
 ==== Watch process
 
 You may have already noticed the slow startup time of the _ClojureScript_
-compiler. To solve this, the _ClojureScript_ standalone compiler comes with a tool to
-watch for changes in your source code, and re-compile modified files as soon as they
-are written to disk
+compiler. To solve this, the _ClojureScript_ standalone compiler comes with a
+tool to watch for changes in your source code, and re-compile modified files as
+soon as they are written to disk.
 
-Start by creating another build script, but this time name it _watch.clj_:
+Let's start converting our build.clj script to something that can accept
+arguments and execute different tasks. Let's create a `tools.clj` script file
+with the following content:
 
 [source, clojure]
 ----
 (require '[cljs.build.api :as b])
 
-(b/watch "src"
- {:output-to "main.js"
-  :output-dir "out/"
-  :source-map true
-  :main 'mywebapp.core
-  :optimizations :none})
+(defmulti task first)
+
+(defmethod task :default
+  [args]
+  (let [all-tasks  (-> task methods (dissoc :default) keys sort)
+        interposed (->> all-tasks (interpose ", ") (apply str))]
+    (println "Unknown or missing task. Choose one of:" interposed)
+    (System/exit 1)))
+
+(def build-opts
+  {:output-to "main.js"
+   :source-map true
+   :output-dir "out/"
+   :main 'mywebapp.core
+   :verbose true
+   :optimizations :none})
+
+(defmethod task "build"
+  [args]
+  (b/build "src" build-opts))
+
+(defmethod task "watch"
+  [args]
+  (b/watch"src" build-opts))
+
+(task *command-line-args*)
 ----
 
-Now, execute the script just like you have in previous sections:
+Now you can start the watch process with the following command:
 
 [source, bash]
 ----
-$ java -cp ../cljs.jar:src clojure.main watch.clj
-Building ...
-Reading analysis cache for jar:file:/home/niwi/cljsbook/playground/cljs.jar!/cljs/core.cljs
-Compiling src/mywebapp/core.cljs
-Compiling out/cljs/core.cljs
-Using cached cljs.core out/cljs/core.cljs
-... done. Elapsed 0.754487937 seconds
-Watching paths: /home/niwi/cljsbook/playground/mywebapp/src
+clojure tools.clj watch
 ----
 
 Go back to the `mywebapp.core` namespace, and change the print text to `"Hello World,
 Again!"`.  You'll see that the file `src/mywebapp/core.cljs` the file is immediately
 recompiled, and if you reload `index.html` in your browser the new text is displayed
-in the developer console.  Another advantage of this method is that it gives a little
-bit more output.
+in the developer console.
+
+You also can start the simple build with:
+
+[source, bash]
+----
+clojure tools.clj build
+----
+
+And finally, if you execute the `build.clj` script with no params, a help message
+with available "tasks" will be printed:
+
+[source, bash]
+----
+$ clojure tools.clj
+Unknown or missing task. Choose one of: build, watch
+----
 
 
 ==== Optimization levels
@@ -413,50 +459,68 @@ requirements.
 ==== Nashorn REPL
 
 The Nashorn REPL is the easiest and perhaps most painless REPL environment because it
-does not require any special stuff, just the JVM (JDK 8) that you have used in
-previous examples for running the _ClojureScript_ compiler.
+does not require any special stuff.
 
-Let’s start creating the _repl.clj_ file with the following content:
+Let’s start creating a new script file for our repl playground called
+`tools.clj` in a new directory (in our case `repl_playground/tools.clj`):
 
 [source, clojure]
 ----
-(require '[cljs.repl]
-         '[cljs.repl.nashorn])
+(require '[cljs.repl :as repl])
+(require '[cljs.repl.nashorn :as nashorn])
 
-(cljs.repl/repl
- (cljs.repl.nashorn/repl-env)
- :output-dir "out"
- :cache-analysis true)
+(defmulti task first)
+
+(defmethod task :default
+  [args]
+  (let [all-tasks  (-> task methods (dissoc :default) keys sort)
+        interposed (->> all-tasks (interpose ", ") (apply str))]
+    (println "Unknown or missing task. Choose one of:" interposed)
+    (System/exit 1)))
+
+(defmethod task "repl:nashorn"
+  [args]
+  (repl/repl (nashorn/repl-env)
+             :output-dir "out/nashorn"
+             :cache-analysis true))
+
+(task *command-line-args*)
 ----
 
-Then, execute the following command to get the REPL up and running:
+Create the `repl_playground/depls.edn` file with the following content
+(identical from previous examples):
+
+[source, clojure]
+----
+{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}
+        org.clojure/clojure {:mvn/version "1.10.1"}}
+ :paths ["src"]}
+----
+
+And now, we can execute the REPL:
 
 [source, bash]
 ----
-$ java -cp cljs.jar:src clojure.main repl.clj
-To quit, type: :cljs/quit
-cljs.user=> (+ 1 2)
-3
+$ clj tools.clj repl:nashorn
+ClojureScript 1.10.520
+cljs.user=> (prn "Hello world")
+"Hello world"
+nil
 ----
 
-You may have noticed that the REPL does not have support for history and other
-shell-like facilities. This is because the default REPL does not comes with
-"readline" support. But this problem can be solved using a simple tool named `rlwrap`
-which you should be able to find find with the package manager of your operating
-system (e.g. for Ubuntu, type `sudo apt install -y rlwrap` to install).
+You may have noticed that in this example we have used `clj` command instead of
+`clojure`. That two commands are practically identical, the main difference is
+that `clj` executes `clojure` command wrapped in `rlwrap`. The `rlwrap` tool
+gives the "readline" capabilities which enables history, code navigation, and
+other shell-like features that will make your REPL experience much more
+pleasant.
 
-The `rlwrap` tool gives the REPL "readline" capability, and will allow you to have
-command history, code navigation, and other shell-like utilities that will make your
-REPL experience much more pleasant. To use it, just prepend it to the previous
-command that we used to start the REPL:
+If you don't have installed it previously, you can install it with `sudo apt
+install -y rlwrap`.
 
-[source, bash]
-----
-$ rlwrap java -cp cljs.jar:src clojure.main repl.clj
-To quit, type: :cljs/quit
-cljs.user=> (+ 1 2)
-3
-----
+NOTE: This is a basic repl, in the following chapters we will explain how to
+have a more advanced repl experience with code-highlighting, code-completion and
+multiline edition.
 
 
 ==== Node.js REPL
@@ -469,27 +533,28 @@ very simple: nodejs is the most used JavaScript execution environment on the bac
 and it has a great number of community packages built around it.
 
 The good news is that starting a nodejs REPL is very easy once you have it installed
-in your system. Start writing this content to a new `repl.clj` file:
+in your system. Start adding the following content into `tools.clj` script:
 
 [source, clojure]
 ----
-(require '[cljs.repl]
-         '[cljs.repl.node])
+(require '[cljs.repl.node :as node])
 
-(cljs.repl/repl
- (cljs.repl.node/repl-env)
- :output-dir "out"
- :cache-analysis true)
+(defmethod task "node:repl"
+  [args]
+  (repl/repl (node/repl-env)
+             :output-dir "out/nodejs"
+             :cache-analysis true))
 ----
 
-And start the REPL like you have done it previously with nashorn REPL:
+And start the REPL:
 
 [source,bash]
 ----
-$ rlwrap java -cp cljs.jar:src clojure.main repl.clj
-To quit, type: :cljs/quit
-cljs.user=> (+ 1 2)
-3
+$ clj tools.clj repl:node
+ClojureScript 1.10.520
+cljs.user=> (prn "Hello world")
+"Hello world"
+nil
 ----
 
 
@@ -498,32 +563,32 @@ cljs.user=> (+ 1 2)
 This REPL is the most laborious to get up and running. This is because it uses a
 browser for its execution environment and it has additional requirements.
 
-Let’s start by creating a file named `brepl.clj` with the following content:
+Let’s start by adding the following content to the `tools.clj` script file:
 
 [source, clojure]
 ----
-(require
-  '[cljs.build.api :as b]
-  '[cljs.repl :as repl]
-  '[cljs.repl.browser :as browser])
+(require '[cljs.build.api :as b])
+(require '[cljs.repl.browser :as browser])
 
-(b/build "src"
- {:output-to "main.js"
-  :output-dir "out/"
-  :source-map true
-  :main 'myapp.core
-  :verbose true
-  :optimizations :none})
+(defmethod task "repl:browser"
+  [args]
+  (println "Building...")
+  (b/build "src"
+           {:output-to "out/browser/main.js"
+            :output-dir "out/browser"
+            :source-map true
+            :main 'myapp.core
+            :optimizations :none})
 
-(repl/repl (browser/repl-env)
-  :output-dir "out")
+  (println "Launching REPL...")
+  (repl/repl (browser/repl-env :port 9001)
+             :output-dir "out/browser"))
 ----
 
-This script builds the source, just as we did earlier, and then starts the REPL.
-
-But the browser REPL also requires that some code be executed in the browser before
-the REPL gets working. To do that, just re-create the application structure very
-similar to the one that we have used in previous sections:
+The main difference with the previous examples, is that browser REPL requires
+that some code be execution in the browser before the REPL gets working. To do
+that, just re-create the application structure very similar to the one that we
+have used in previous sections:
 
 [source, bash]
 ----
@@ -539,15 +604,15 @@ Then, write new content to the `src/myapp/core.cljs` file:
  (:require [clojure.browser.repl :as repl]))
 
 (defonce conn
-  (repl/connect "http://localhost:9000/repl"))
+  (repl/connect "http://localhost:9001/repl"))
 
 (enable-console-print!)
 
 (println "Hello, world!")
 ----
 
-And finally, create the missing _index.html_ file that is going to be used as the
-entry point for running the browser side code of the REPL:
+And finally, create the missing _index.html_ file that is going to be used as
+the entry point for running the browser side code of the REPL:
 
 [source, html]
 ----
@@ -558,23 +623,25 @@ entry point for running the browser side code of the REPL:
     <title>Hello World from ClojureScript</title>
   </header>
   <body>
-    <script src="main.js"></script>
+    <script src="out/browser/main.js"></script>
   </body>
 </html>
 ----
 
 Well, that was a lot of setup! But trust us, it’s all worth it when you see it in
-action.  To do that, just execute the `brepl.clj` in the same way that we have done
+action. To do that, just execute the `tools.clj` in the same way that we have done
 it in previous examples:
 
 [source, bash]
 ----
-$ rlwrap java -cp cljs.jar:src clojure.main brepl.clj
-Compiling client js ...
-Waiting for browser to connect ...
+$ clj tools.clj repl:browser
+Building...
+Launching REPL...
+ClojureScript 1.10.520
+cljs.user=>
 ----
 
-And finally, open your favourite browser and go to http://localhost:9000/. Once the
+And finally, open your favourite browser and go to http://localhost:9001/. Once the
 page is loaded (the page will be blank), switch back to the console where you have
 run the REPL and you will see that it is up and running:
 
@@ -589,6 +656,12 @@ cljs.user=> (+ 14 28)
 One of the big advantages of the browser REPL is that you have access to everything
 in the browser environment. For example, type `(js/alert "hello world")` in the
 REPL. This will cause the browser to display an alert box. Nice!
+
+NOTE: This is just a preview of how to use the builtin REPL capabilities of the
+ClojureScript compiler. There are better and more user/developer friendly repl
+environments with code-highlighting, code-completion and multiline edition (and
+in case of web development, also with code hot reloading) that will be explained
+in the following chapters.
 
 
 === The Closure Library
