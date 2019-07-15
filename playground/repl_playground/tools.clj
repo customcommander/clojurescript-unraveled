@@ -4,6 +4,12 @@
 (require '[cljs.repl.node :as node])
 (require '[cljs.repl.browser :as browser])
 
+(require '[rebel-readline.core]
+         '[rebel-readline.clojure.main]
+         '[rebel-readline.clojure.line-reader]
+         '[rebel-readline.cljs.service.local]
+         '[rebel-readline.cljs.repl])
+
 (defmulti task first)
 
 (defmethod task :default
@@ -24,6 +30,18 @@
   (repl/repl (node/repl-env)
              :output-dir "out/nodejs"
              :cache-analysis true))
+
+
+(defmethod task "repl:rebel:node"
+  [args]
+  (rebel-readline.core/with-line-reader
+    (rebel-readline.clojure.line-reader/create
+     (rebel-readline.cljs.service.local/create))
+    (repl/repl (node/repl-env)
+               :prompt (fn []) ;; prompt is handled by line-reader
+               :read (rebel-readline.cljs.repl/create-repl-read)
+               :output-dir "out/nodejs"
+               :cache-analysis false)))
 
 (defmethod task "repl:browser"
   [args]

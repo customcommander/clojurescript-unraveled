@@ -487,8 +487,8 @@ Let’s start creating a new script file for our repl playground called
 (task *command-line-args*)
 ----
 
-Create the `repl_playground/depls.edn` file with the following content
-(identical from previous examples):
+Create the `repl_playground/deps.edn` file with the following content (identical
+from previous examples):
 
 [source, clojure]
 ----
@@ -662,6 +662,63 @@ ClojureScript compiler. There are better and more user/developer friendly repl
 environments with code-highlighting, code-completion and multiline edition (and
 in case of web development, also with code hot reloading) that will be explained
 in the following chapters.
+
+
+==== Rebel Readline (REPL library)
+
+This is a library that adds more advanced features to the Clojure(Script)
+builtin REPL and enables code-highlighting, code-completion and multiline
+edition.
+
+Let's start adding rebel dependency into `deps.edn` file:
+
+[source, clojure]
+----
+{:deps {org.clojure/clojurescript {:mvn/version "1.10.520"}
+        org.clojure/clojure {:mvn/version "1.10.1"}
+        com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
+        com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+ :paths ["src"]}
+----
+
+And adding the followin code to the `tools.clj` script file:
+
+[source, clojure]
+----
+(require '[rebel-readline.core]
+         '[rebel-readline.clojure.main]
+         '[rebel-readline.clojure.line-reader]
+         '[rebel-readline.cljs.service.local]
+         '[rebel-readline.cljs.repl])
+
+(defmethod task "repl:rebel:node"
+  [args]
+  (rebel-readline.core/with-line-reader
+    (rebel-readline.clojure.line-reader/create
+     (rebel-readline.cljs.service.local/create))
+    (repl/repl (node/repl-env)
+               :prompt (fn [])
+               :read (rebel-readline.cljs.repl/create-repl-read)
+               :output-dir "out/nodejs"
+               :cache-analysis true)))
+----
+
+And start the REPL:
+
+[source, bash]
+----
+$ clojure tools.clj repl:rebel:node
+ClojureScript 1.10.520
+cljs.user=> (println
+cljs.core/println: ([& objs])
+----
+
+You can find that while you writing in the repl, it automatically suggest and
+shows se function signature that you want to execute.
+
+You can find more information about all rebel-readline capabilities on
+https://github.com/bhauman/rebel-readline
+
 
 
 === The Closure Library
