@@ -24,10 +24,10 @@ JavaScript can be executed. For example, the most popular execution environment 
 browser (Chrome, Firefox, ...) followed by the second most popular -
 link:https://nodejs.org/[nodejs].
 
-There are others, such as Rhino (JDK 6+), Nashorn (JDK 8), QtQuick (QT),... but none
-of them have significant differences from the first two. So, _ClojureScript_ at the
-moment may compile code to run in the browser or in nodejs-like environments out of
-the box.
+There are others, such as Rhino (JDK 6+), Nashorn (JDK 8+), QtQuick (QT),... but
+none of them have significant differences from the first two. So,
+_ClojureScript_ at the moment may compile code to run in the browser or in
+nodejs-like environments out of the box.
 
 
 ==== Download the compiler

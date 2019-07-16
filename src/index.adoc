@@ -1,6 +1,6 @@
-= ClojureScript Unraveled
+= ClojureScript Unraveled (2nd edition)
 Andrey Antukh <niwi@niwi.nz>; Alejandro Gómez <alejandro@dialelo.com>
-v6, 2016-07-25
+v6, 2019-07-16
 :toc: left
 :toclevels: 3
 :doctype: book
@@ -114,27 +114,14 @@ book.
 You can run the code snippets in the online interactive repl:
 http://www.clojurescript.io/
 
-TODO: add ref to the local install chapter
-
 include::language-basics.adoc[]
 
 
 == Tooling & Compiler
 
-This chapter will cover a little introduction to existing tooling for making things
-easy when developing using ClojureScript. It will cover:
-
-* Using the REPL
-* Leiningen and cljsbuild
-* Google Closure Library
-* Modules
-* Unit testing
-* Library development
-* Browser based development
-* Server based development
-
-Unlike the previous chapter, this chapter intends to tell different stories each
-independent of the other.
+This chapter will cover a little introduction to existing tooling for making
+things easy when developing using ClojureScript. Unlike the previous chapter,
+this chapter intends to tell different stories each independent of the other.
 
 include::compiler.adoc[]
 
@@ -147,11 +134,6 @@ transducers, core protocols, transients, metadata. In summary: topics that are n
 mandatory for understand the language.
 
 include::language-advanced.adoc[]
-
-
-== Appendix
-
-include::appendix.adoc[]
 
 
 == Acknowledgments

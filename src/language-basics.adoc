@@ -2148,6 +2148,16 @@ The string and symbol shorthand syntax works exactly like `:keys`, but using the
 ;; => ["Cirilla" "Fiona"]
 ----
 
+If the map you want to destructure has namespaced keywords as keys, you also can
+do it using the keyword syntax inside `:keys` vector:
+
+[source, clojure]
+----
+(let [{:keys [::name ::surname]} {::name "Cirilla" ::surname "Fiona"}]
+  [name surname])
+;; => ["Cirilla" "Fiona"]
+----
+
 An interesting property of destructuring is that we can nest destructuring forms
 arbitrarily, which makes code that accesses nested data on a collection very easy to
 understand, as it mimics the collection's structure:
@@ -2417,10 +2427,6 @@ multiple forms together:
 [[namespace-section]]
 === Namespaces
 
-////
-TODO: namespaced keywords with aliases of namespaces
-////
-
 ==== Defining a namespace
 
 The _namespace_ is ClojureScript's fundamental unit of code modularity. Namespaces
@@ -2486,6 +2492,33 @@ long. To solve that, you can use the `:as` directive to create an additional
 (str/upper-case core/x)
 ;; => "HELLO"
 ----
+
+One peculiarity of the namespace aliases, is that they can be used to obtain
+namespaced keywords from a specific namespace:
+
+[source, clojure]
+----
+(ns myapp.main
+  (:require [myapp.core :as c]))
+
+::c/foo
+;; => :myapp.core/foo
+----
+
+In the same way, you can namespace all the keys on the moment of creation of a
+map:
+
+[source, clojure]
+----
+(def x #::c {:a 1})
+
+x
+;; => #:myapp.core{:a 1}
+
+(::c/a x)
+;; => 1
+----
+
 
 Additionally, _ClojureScript_ offers a simple way to refer to specific vars or
 functions from a concrete namespace using the `:refer` directive, followed by a
