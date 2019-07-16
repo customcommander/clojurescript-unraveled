@@ -783,21 +783,24 @@ Let's start creating the project layout:
 [source, bash]
 ----
 mkdir -p leapyears/src/leapyears
+mkdir -p leapyears/target/public
+touch leapyears/target/public/index.html
 touch leapyears/src/leapyears/core.cljs
 touch leapyears/tools.cljs
 touch leapyears/deps.edn
-touch leapyears/index.html
 ----
 
 The project has the following structure:
 
 ----
 leapyears
-├── deps.end
-├── index.html
+├── deps.edn
 ├── src
 │   └── leapyears
 │       └── core.cljs
+├── target
+│   └── public
+│       └── index.html
 └── tools.clj
 ----
 
@@ -806,15 +809,15 @@ needed to build or execute the application. Packaged dependencies are libraries
 packaged as jar files and uploaded to clojars/maven repository.
 
 [NOTE]
-----
+====
 But ClojureScript can consume external code in many different ways:
 
 - google closure library module
-- es6 module (experimental)
 - global export module
+- es6/commonjs module (experimental)
 
 This will be explained in the following sections.
-----
+====
 
 Let's start with a simple `deps.edn` file:
 
@@ -824,7 +827,7 @@ Let's start with a simple `deps.edn` file:
         org.clojure/clojure {:mvn/version "1.10.1"}
         com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
         com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
- :paths ["src"]}
+ :paths ["src" "target"]}
 ----
 
 And simple build script (`tools.clj` file):
@@ -833,7 +836,7 @@ And simple build script (`tools.clj` file):
 ----
 (require '[cljs.build.api :as b])
 (require '[cljs.repl :as repl])
-(require '[cljs.repl.nashorn :as nashorn])
+(require '[cljs.repl.node :as node])
 
 (defmulti task first)
 
@@ -845,31 +848,31 @@ And simple build script (`tools.clj` file):
     (System/exit 1)))
 
 (def build-opts
-  {:output-to "out/leapyears.js"
+  {:output-to "target/public/js/leapyears.js"
    :source-map true
-   :output-dir "out/leapyears"
+   :output-dir "target/public/js/leapyears"
    :main 'leapyears.core
    :verbose true
    :optimizations :none})
 
 (defmethod task "repl"
   [args]
-  (repl/repl (nashorn/repl-env)
-             :output-dir "out/nashorn"
+  (repl/repl (node/repl-env)
+             :output-dir "target/nodejs"
              :cache-analysis true))
 
 (defmethod task "build"
   [args]
-  (b/build (b/inputs "src" "vendor") build-opts))
+  (b/build "src" build-opts))
 
 (defmethod task "watch"
   [args]
-  (b/watch (b/inputs "src" "vendor") build-opts))
+  (b/watch "src" build-opts))
 
 (task *command-line-args*)
 ----
 
-Then, write the following content into `index.html` file:
+Then, write the following content into `target/public/index.html` file:
 
 [source, html]
 ----
@@ -891,7 +894,7 @@ Then, write the following content into `index.html` file:
       </form>
     </section>
 
-    <script src="out/leapyears.js" type="text/javascript"></script>
+    <script src="./js/leapyears.js" type="text/javascript"></script>
   </body>
 </html>
 ----
@@ -935,7 +938,7 @@ Now, we can compile the project with:
 clojure tools.clj watch
 ----
 
-Finally, open the `index.html` file in a browser. Typing a year in the textbox
+Finally, open the `target/public/index.html` file in a browser. Typing a year in the textbox
 should display an indication of its leap year status.
 
 
@@ -1009,19 +1012,18 @@ directory structure:
 
 [source, bash]
 ----
-mkdir -p vendor/leapyears/vendor/
-touch vendor/leapyears/vendor/util_closure.js
+touch src/leapyears/util.js
 ----
 
 And add the implementation using closure module format:
 
-.vendor/leapyears/vendor/util_closure.js
+.src/leapyears/util.js
 [source, js]
 ----
-goog.provide("leapyears.vendor.util_closure");
+goog.provide("leapyears.util");
 
 goog.scope(function() {
-  var module = leapyears.vendor.util_closure;
+  var module = leapyears.util;
 
   module.isLeap = function(val) {
     return (0 === (val % 400)) || (((val % 100) > 0) && (0 === (val % 4)));
@@ -1034,7 +1036,7 @@ function
 
 [source, clojure]
 ----
-(require '[leapyears.vendor.util-closure :as util])
+(require '[leapyears.util :as util])
 
 (util/isLeap 2112)
 ;; => true
@@ -1094,7 +1096,7 @@ link:https://clojurescript.org/reference/compiler-options#foreign-libs[descibed
 here] for provide the compiler with enough information about the files and
 global exports to use.
 
-So, if don't find our library in cljsjs, we can include it using the same
+So, if don't find a library in cljsjs, we can include it using the same
 facilities. Let's assume that moment is not available on cljsjs and we need it
 on our project.
 
@@ -1119,10 +1121,11 @@ This is how looks the `deps.edn` file with the changes applied:
     :file-min "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"
     :provides ["vendor.moment"]}])
 
+
 (def build-opts
-  {:output-to "out/leapyears.js"
+  {:output-to "target/public/js/leapyears.js"
    :source-map true
-   :output-dir "out/leapyears"
+   :output-dir "target/public/js/leapyears"
    :main 'leapyears.core
    :verbose true
    :optimizations :none
@@ -1130,9 +1133,9 @@ This is how looks the `deps.edn` file with the changes applied:
 
 (defmethod task "repl"
   [args]
-  (repl/repl (nashorn/repl-env)
+  (repl/repl (node/repl-env)
              :foreign-libs foreign-libs
-             :output-dir "out/nashorn"
+             :output-dir "target/node"
              :cache-analysis true))
 
 ;; [...]
@@ -1172,6 +1175,50 @@ The best way to use ES6 and/or CommonJS module is combining a javascript bundler
 like _rollup_ or _webpack_ to generate a single build with external dependencies
 and thn use the *global exports* method to use it in ClojureScript. An example
 of this is explained link:https://clojurescript.org/guides/webpack[on clojurescript.org].
+
+
+=== Interactive development with Figwheel
+
+And finally we will introduce *figwheel*, that enables fully interactive,
+REPL-based and hot reloading enabled development environment.
+
+We will reuse the leapyears project structure for the following examples.
+
+NOTE: Although we use figwheel here for web application, it works in the same
+way on the application that targets nodejs as execution environment.
+
+As first step, we need to add *figwheel* dependency to the `deps.edn` file:
+
+[source, clojure]
+----
+com.bhauman/figwheel-main {:mvn/version "0.2.1"}
+----
+
+Then, add new task to the `tools.clj` script:
+
+[source, clojure]
+----
+(def figwheel-opts
+  {:open-url false
+   :load-warninged-code true
+   :auto-testing false
+   :ring-server-options {:port 3448 :host "0.0.0.0"}
+   :watch-dirs ["src"]})
+
+(defmethod task "figwheel"
+  [args]
+  (figwheel/start figwheel-opts {:id "main" :options build-opts}))
+----
+
+
+And then, run `clojure tools.clj fighweel`. This will start the figwheel process
+that automatically will launch a http server that will serve the
+`target/public/` directory and index to `index.html` file.
+
+If you update the code, that code will be automatically loaded to the browser,
+*without page reload*.
+
+For more info: link:https://figwheel.org/[figwheel.org].
 
 
 === Unit testing

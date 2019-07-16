@@ -2,7 +2,7 @@
   (:require [goog.dom :as dom]
             [goog.events :as events]
             [cuerdas.core :as str]
-            [leapyears.vendor.util-closure :as closure-util]
+            [leapyears.util :as util]
             [cljs.reader :refer (read-string)]))
 
 (enable-console-print!)
@@ -10,16 +10,9 @@
 (def input (dom/getElement "year"))
 (def result (dom/getElement "result"))
 
-;; ClojureScript version
-;; (defn leap?
-;;   [year]
-;;   (or (zero? (js-mod year 400))
-;;       (and (pos? (js-mod year 100))
-;;            (zero? (js-mod year 4)))))
-
 (defn leap?
   [year]
-  (closure-util/isLeap year))
+  (util/isLeap year))
 
 (defn on-change
   [event]

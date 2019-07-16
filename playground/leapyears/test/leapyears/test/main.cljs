@@ -1,6 +1,6 @@
 (ns leapyears.test.main
   (:require [cljs.test :as t]
-            [leapyears.vendor.util-closure :as util]))
+            [leapyears.util :as util]))
 
 (enable-console-print!)
 

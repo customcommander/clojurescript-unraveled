@@ -5,3 +5,4 @@
 /playground/main.js*
 nashorn_code_cache
 .cpcache
+.rebel_readline_history
