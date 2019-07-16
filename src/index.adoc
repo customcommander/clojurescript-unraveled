@@ -2,7 +2,7 @@
 Andrey Antukh <niwi@niwi.nz>; Alejandro Gómez <alejandro@dialelo.com>
 v6, 2016-07-25
 :toc: left
-:toclevels: 2
+:toclevels: 3
 :doctype: book
 :numbered:
 :source-highlighter: pygments

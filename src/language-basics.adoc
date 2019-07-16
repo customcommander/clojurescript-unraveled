@@ -106,11 +106,11 @@ keys.
 :?
 ----
 
-As you can see, the keywords are all prefixed with `:`, but this character is only
-part of the literal syntax and is not part of the name of the object.
+As you can see, the keywords are all prefixed with `:`, but this character is
+only part of the literal syntax and is not part of the name of the object.
 
-You can also create a keyword by calling the `keyword` function. Don't worry if you
-don't understand or are unclear about anything in the following example;
+You can also create a keyword by calling the `keyword` function. Don't worry if
+you don't understand or are unclear about anything in the following example;
 <<function-section,functions>> are discussed in a later section.
 
 [source, clojure]
@@ -121,34 +121,36 @@ don't understand or are unclear about anything in the following example;
 
 ===== Namespaced keywords
 
-When prefixing keywords with a double colon `::`, the keyword will be prepended by the name of the current namespace.
-Note that namespacing keywords affects equality comparisons.
+When prefixing keywords with a double colon `::`, the keyword will be prepended
+by the name of the current namespace.  Note that namespacing keywords affects
+equality comparisons.
 
 [source, clojure]
----
+----
 ::foo
 ;; => :cljs.user/foo
 
 (= ::foo :foo)
 ;; => false
----
+----
 
-Another alternative is to include the namespace in the keyword literal, this is useful when creating namespaced keywords
-for other namespaces:
+Another alternative is to include the namespace in the keyword
+literal, this is useful when creating namespaced keywords for other
+namespaces:
 
 [source, clojure]
----
+----
 :cljs.unraveled/foo
 ;; => :cljs.unraveled/foo
----
+----
 
 The `keyword` function has an arity-2 variant where we can specify the namespace as the first parameter:
 
 [source, clojure]
----
+----
 (keyword "cljs.unraveled" "foo")
 ;; => :cljs.unraveled/foo
----
+----
 
 
 ==== Symbols
@@ -2410,6 +2412,10 @@ multiple forms together:
 
 [[namespace-section]]
 === Namespaces
+
+////
+TODO: namespaced keywords with aliases of namespaces
+////
 
 ==== Defining a namespace
 
