@@ -2162,28 +2162,29 @@ understand, as it mimics the collection's structure:
 
 === Threading Macros
 
-Threading macros, also known as arrow functions, enables one to write more readable code
-when multiple nested function calls are performed.
+Threading macros, also known as arrow functions, enables one to write
+more readable code when multiple nested function calls are performed.
 
-Imagine you have `(f (g (h x)))` where a function `f` receives as its first parameter the
-result of executing function `g`, repeated multiple times. With the most basic `->` threading
-macro you can convert that into `(\-> x (h) (g) (f))` which is easier to read.
+Imagine you have `(f (g (h x)))` where a function `f` receives as its first
+parameter the result of executing function `g`, repeated multiple times. With
+the most basic `->` threading macro you can convert that into `(\-> x (h) (g)
+(f))` which is easier to read.
 
 The result is syntactic sugar, because the arrow functions are defined as macros
 and it does not imply any runtime performance. The `(\-> x (h) (g) (f))` is
 automatically converted to (f (g (h x))) at compile time.
 
-Take note that the parenthesis on `h`, `g` and `f` are optional, and can be ommited:
-`(f (g (h x)))` is the same as `(\-> x h g f)`.
+Take note that the parenthesis on `h`, `g` and `f` are optional, and can be
+ommited: `(f (g (h x)))` is the same as `(\-> x h g f)`.
 
 
-==== The thread-first macro (`\->`)
+==== `\->` (thread-first macro)
 
 This is called *thread first* because it threads the first argument throught the
 different expressions as first arguments.
 
-Using a more concrete example, this is how the code looks without using threading
-macros:
+Using a more concrete example, this is how the code looks without using
+threading macros:
 
 [source, clojure]
 ----
@@ -2204,12 +2205,13 @@ We can rewrite that code to use the `\->` threading macro:
 ;; => {:name "Lady of the lake" :age 1999 :readers 1}
 ----
 
-This threading macro is especially useful for transforming data structures, because
-_ClojureScript_ (and _Clojure_) functions for data structures transformations
-consistently uses the first argument for receive the data structure.
+This threading macro is especially useful for transforming data structures,
+because _ClojureScript_ (and _Clojure_) functions for data structures
+transformations consistently uses the first argument for receive the data
+structure.
 
 
-==== The thread-last macro (`\->>`)
+==== `\->>` (thread-last macro)
 
 The main difference between the thread-last and thread-first macros is that instead
 of threading the first argument given as the first argument on the following expresions,
@@ -2241,16 +2243,16 @@ of data because _ClojureScript_ functions that work with sequences and collectio
 consistently use the last argument position to receive them.
 
 
-==== The thread-as macro (`as\->`)
+==== `as\->` (thread-as macro)
 
 Finally, there are cases where neither `\->` nor `\->>` are applicable. In these
-cases, you’ll need to use `as\->`, the more flexible alternative, that allows you to
-thread into any argument position, not just the first or last.
+cases, you’ll need to use `as\->`, the more flexible alternative, that allows
+you to thread into any argument position, not just the first or last.
 
 It expects two fixed arguments and an arbitrary number of expressions. As with
-`\->`, the first argument is a value to be threaded through the following forms. The
-second argument is the name of a binding. In each of the subsequent forms, the bound
-name can be used for the prior expression's result.
+`\->`, the first argument is a value to be threaded through the following
+forms. The second argument is the name of a binding. In each of the subsequent
+forms, the bound name can be used for the prior expression's result.
 
 Let's see an example:
 
@@ -2265,7 +2267,7 @@ Let's see an example:
 ----
 
 
-==== The thread-some macros (`some\->` and `some\->>`)
+==== `some\->`, `some\->>` (thread-some macros)
 
 Two of the more specialized threading macros that _ClojureScript_ comes with. They work
 in the same way as their analagous `\->` and `\->>` macros with the additional
@@ -2288,7 +2290,7 @@ Let's see another example:
 This is an easy way avoid null pointer exceptions.
 
 
-==== The thread-cond macros (`cond\->` and `cond\->>`)
+==== `cond\->`, `cond\->>` (thread-cond macros)
 
 The `cond\->` and `cond\->>` macros are analgous to `\->` and `\->>` that offers
 the ability to conditionally skip some steps from the pipeline. Let see an example:
@@ -2312,6 +2314,7 @@ the ability to conditionally skip some steps from the pipeline. Let see an examp
 
 The value threading only happens when the corresponding condition evaluates to
 logical true.
+
 
 ==== Additional Readings
 
